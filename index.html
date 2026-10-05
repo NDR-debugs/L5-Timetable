@@ -39,17 +39,19 @@
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45;-webkit-font-smoothing:antialiased}
 button{font:inherit;color:inherit}
+[hidden]{display:none !important}
 :focus-visible{outline:3px solid var(--focus);outline-offset:2px;border-radius:6px}
 
 .wrap{max-width:1240px;margin:0 auto;padding:28px 24px 48px}
 header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:20px 32px;margin-bottom:22px}
 .title h1{font-family:var(--display);font-weight:700;font-size:clamp(28px,4vw,40px);line-height:1.05;margin:0;letter-spacing:-.01em}
 .title p{margin:6px 0 0;color:var(--muted);font-size:15px}
+.title .tap-hint{margin-top:2px}
 .title .grp{font-variant-numeric:tabular-nums}
 
 .picker{display:flex;flex-direction:column;gap:6px}
 .picker label{font-size:14px;color:var(--muted)}
-.chips{display:flex;flex-wrap:wrap;gap:6px;max-width:560px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;max-width:560px;position:relative}
 .chip{min-width:40px;height:40px;padding:0 10px;border-radius:10px;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-weight:700;font-variant-numeric:tabular-nums;position:relative}
 .chip:hover{background:var(--hover)}
 .chip[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
@@ -70,7 +72,8 @@ header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:spac
 .wgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .wgrid button{height:52px;border-radius:12px;border:1px solid var(--line);background:var(--paper);font-weight:700;font-size:18px;cursor:pointer;font-variant-numeric:tabular-nums}
 .wgrid button:hover{background:var(--hover);border-color:var(--muted)}
-.back-mine{border:none;background:none;color:var(--focus);text-decoration:underline;cursor:pointer;padding:0;font-size:14px;align-self:flex-start}
+/* Padding widens the tap area; the negative margin keeps the line height unchanged */
+.back-mine{border:none;background:none;color:var(--focus);text-decoration:underline;text-underline-offset:2px;cursor:pointer;font-size:inherit;padding:10px 4px;margin:-10px 0 -10px 8px}
 
 .legend{display:flex;flex-wrap:wrap;gap:8px 18px;margin:0 0 18px;padding:0;list-style:none;font-size:14px;color:var(--muted)}
 .legend li{display:flex;align-items:center;gap:7px}
@@ -106,13 +109,32 @@ header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:spac
 .days-tabs{display:none}
 .list{display:none}
 @media (max-width:780px){
-  .wrap{padding:20px 14px 40px}
+  .wrap{padding:16px 14px 40px}
+  /* Compact header so the first class is on screen without scrolling */
+  header.top{gap:12px;margin-bottom:4px}
+  .title h1{font-size:24px}
+  .title p{margin-top:4px}
+  .title .tap-hint{display:none}
+  .picker{flex:1 1 100%;gap:10px;min-width:0}
+  .picker label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  /* Groups become one row you swipe sideways, running to the screen edges */
+  .chips{flex-wrap:nowrap;max-width:none;overflow-x:auto;margin:-6px -14px;padding:6px 14px;scrollbar-width:none;overscroll-behavior-x:contain}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{flex:0 0 auto;min-width:44px;height:44px}
+  .tools{flex-wrap:nowrap;margin-top:0}
+  .tbtn{height:40px}
+  .tbtn .wide{display:none}
+  #themeBtn{width:40px;padding:0;justify-content:center;margin-left:auto}
+  #themeBtn .tlabel{display:none}
+  .legend{display:none}
   .grid{display:none}
-  .days-tabs{display:flex;gap:6px;margin-bottom:14px;position:sticky;top:env(safe-area-inset-top,0px);background:var(--paper);padding:8px 0;z-index:2}
+  .days-tabs{display:flex;gap:6px;margin-bottom:8px;position:sticky;top:env(safe-area-inset-top,0px);background:var(--paper);padding:8px 0;z-index:2}
   .days-tabs button{flex:1;height:44px;border-radius:10px;border:1px solid var(--line);background:var(--surface);font-weight:700;cursor:pointer}
   .days-tabs button[aria-selected="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
   .list{display:flex;flex-direction:column;gap:10px}
-  .list .s{position:relative;left:auto;right:auto;padding:14px 14px 14px 18px}
+  .list .s{position:relative;left:auto;right:auto;padding:14px 40px 14px 18px}
+  /* Chevron tells you the card opens; it replaces the "tap any class" hint */
+  .list .s::after{content:"";position:absolute;right:18px;top:50%;width:9px;height:9px;border-top:2px solid var(--muted);border-right:2px solid var(--muted);transform:translateY(-50%) rotate(45deg)}
   .gap{font-size:14px;color:var(--muted);padding:2px 4px}
   .empty{padding:28px 16px;text-align:center;color:var(--muted);background:var(--surface);border-radius:12px;border:1px dashed var(--line)}
 }
@@ -160,12 +182,12 @@ footer{margin-top:22px;font-size:13px;color:var(--muted)}
   <header class="top">
     <div class="title">
       <h1>Level 5 Computer Science</h1>
-      <p>Showing <span class="grp" id="grpLabel"></span>. Tap any class to find another group's slot.</p>
+      <p>Showing <span class="grp" id="grpLabel"></span><button class="back-mine" id="backMine" hidden></button></p>
+      <p class="tap-hint">Tap any class to find another group's slot.</p>
     </div>
     <div class="picker">
       <label id="pickLbl">Group</label>
       <div class="chips" role="group" aria-labelledby="pickLbl" id="chips"></div>
-      <button class="back-mine" id="backMine" hidden></button>
       <div class="tools">
         <button class="tbtn primary" id="setMine" hidden>Set as my group</button>
         <button class="tbtn" id="copyLink">Copy link</button>
@@ -267,22 +289,35 @@ function block(s, absolute){
   return b;
 }
 
-function renderChips(){
-  const c = $("chips"); c.innerHTML = "";
-  for (let g=1; g<=16; g++){
-    const b = document.createElement("button");
-    b.className = "chip" + (g===myGroup?" mine":"");
-    b.textContent = g;
+// Chips are built once and updated in place, so focus and swipe position survive a re-render
+function renderChips(smooth){
+  const c = $("chips");
+  if (!c.children.length){
+    for (let g=1; g<=16; g++){
+      const b = document.createElement("button");
+      b.className = "chip";
+      b.textContent = g;
+      b.onclick = () => { group = g; render(); };
+      c.appendChild(b);
+    }
+  }
+  [...c.children].forEach((b,i) => {
+    const g = i+1;
+    b.classList.toggle("mine", g===myGroup);
     b.setAttribute("aria-pressed", g===group);
     b.setAttribute("aria-label", `Group ${g}${g===myGroup?" (my group)":""}`);
-    b.onclick = () => { group = g; render(); };
-    c.appendChild(b);
+  });
+  // On phones the chips are one sideways row: bring the selected group to the middle
+  if (c.scrollWidth > c.clientWidth){
+    const sel = c.children[group-1];
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    c.scrollTo({left: sel.offsetLeft - (c.clientWidth - sel.offsetWidth)/2, behavior: smooth && !reduce ? "smooth" : "auto"});
   }
   $("grpLabel").textContent = `Group ${group}` + (group===myGroup?" (yours)":"");
   $("backMine").hidden = !myGroup || group===myGroup;
   $("backMine").textContent = `Back to my group (${myGroup})`;
   $("setMine").hidden = group===myGroup;
-  $("setMine").textContent = `Set Group ${group} as my group`;
+  $("setMine").innerHTML = `<span>Set <span class="wide">Group ${group} </span>as my group</span>`;
   $("linkBox").classList.remove("show");
 }
 $("backMine").onclick = () => { group = myGroup; render(); };
@@ -300,7 +335,16 @@ $("copyLink").onclick = async () => {
 
 /* Theme */
 function currentTheme(){ return document.documentElement.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"); }
-function paintThemeBtn(){ const dark = currentTheme()==="dark"; $("themeBtn").textContent = dark ? "☀ Light mode" : "☾ Dark mode"; }
+// SVG icons look the same on every platform (the ☀ glyph doesn't); on phones the label is hidden, so aria-label carries the name
+const ICONS = {
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  moon: '<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>'
+};
+function paintThemeBtn(){
+  const dark = currentTheme()==="dark", text = dark ? "Light mode" : "Dark mode";
+  $("themeBtn").innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${dark ? ICONS.sun : ICONS.moon}</svg><span class="tlabel">${text}</span>`;
+  $("themeBtn").setAttribute("aria-label", "Switch to " + text.toLowerCase());
+}
 (function(){ const saved = store.get("tt-theme"); if (saved==="light"||saved==="dark") document.documentElement.dataset.theme = saved; })();
 $("themeBtn").onclick = () => { const next = currentTheme()==="dark" ? "light" : "dark"; document.documentElement.dataset.theme = next; store.set("tt-theme", next); paintThemeBtn(); };
 matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", paintThemeBtn);
@@ -365,9 +409,11 @@ function renderList(ss){
   });
 }
 
+let rendered = false;
 function render(){
   const ss = sessionsFor(group);
-  renderChips(); renderLegend(ss); renderGrid(ss); renderList(ss);
+  renderChips(rendered); renderLegend(ss); renderGrid(ss); renderList(ss);
+  rendered = true;
 }
 
 /* ---------- Alternatives drawer ---------- */
